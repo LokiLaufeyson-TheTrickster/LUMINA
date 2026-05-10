@@ -17,6 +17,7 @@ export default function EntryDetailPage({ params }: { params: Promise<{ id: stri
   const [entry, setEntry] = useState<JournalEntry | null>(null);
   const [photos, setPhotos] = useState<MediaItem[]>([]);
   const [deleting, setDeleting] = useState(false);
+  const [showConfirmDelete, setShowConfirmDelete] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -30,9 +31,12 @@ export default function EntryDetailPage({ params }: { params: Promise<{ id: stri
     load();
   }, [id]);
 
-  const handleDelete = async () => {
+  const handleDeleteClick = () => {
+    setShowConfirmDelete(true);
+  };
+
+  const handleConfirmDelete = async () => {
     if (!entry?.id) return;
-    if (!confirm('Are you sure you want to delete this entry? This cannot be undone.')) return;
     setDeleting(true);
     await db.entries.delete(entry.id);
     await db.media.where('entryId').equals(entry.id).delete();
@@ -61,7 +65,7 @@ export default function EntryDetailPage({ params }: { params: Promise<{ id: stri
             <ArrowLeft size={18} /> Back
           </button>
           <div style={{ display: 'flex', gap: 8 }}>
-            <button className="btn-ghost" onClick={handleDelete} disabled={deleting} style={{ color: 'var(--pink-400)' }}>
+            <button className="btn-ghost" onClick={handleDeleteClick} disabled={deleting} style={{ color: 'var(--pink-400)' }}>
               <Trash2 size={16} />
             </button>
           </div>
@@ -175,6 +179,57 @@ export default function EntryDetailPage({ params }: { params: Promise<{ id: stri
             {entry.customEmotions.map((e, i) => (
               <span key={i} style={{ fontSize: 24 }}>{e}</span>
             ))}
+          </div>
+        )}
+        {/* Custom Delete Confirm Modal */}
+        {showConfirmDelete && (
+          <div style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 9999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'rgba(0,0,0,0.4)',
+            backdropFilter: 'blur(4px)',
+            padding: 24,
+          }}>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              style={{
+                background: 'var(--background)',
+                borderRadius: 'var(--radius-lg)',
+                padding: 24,
+                width: '100%',
+                maxWidth: 400,
+                boxShadow: 'var(--glass-shadow)',
+              }}
+            >
+              <h3 style={{ fontSize: 18, fontWeight: 600, color: 'var(--neutral-700)', marginBottom: 12 }}>
+                Delete this entry?
+              </h3>
+              <p style={{ fontSize: 14, color: 'var(--neutral-500)', marginBottom: 24, lineHeight: 1.5 }}>
+                Are you sure you want to delete this entry? This cannot be undone.
+              </p>
+              <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end' }}>
+                <button
+                  className="btn-ghost"
+                  onClick={() => setShowConfirmDelete(false)}
+                  disabled={deleting}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="btn-primary"
+                  onClick={handleConfirmDelete}
+                  disabled={deleting}
+                  style={{ background: 'var(--pink-500)', color: 'white', border: 'none' }}
+                >
+                  {deleting ? 'Deleting...' : 'Delete'}
+                </button>
+              </div>
+            </motion.div>
           </div>
         )}
       </div>

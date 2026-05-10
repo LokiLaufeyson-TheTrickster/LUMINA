@@ -18,18 +18,20 @@ export default function MoodHeatmap({ entries, month = new Date() }: MoodHeatmap
   }, [month]);
 
   const entryMap = useMemo(() => {
-    const map = new Map<string, number>();
+    const map = new Map<string, number[]>();
     entries.forEach(e => {
       const key = format(new Date(e.createdAt), 'yyyy-MM-dd');
-      // Average mood if multiple entries
-      const existing = map.get(key);
-      if (existing) {
-        map.set(key, Math.round((existing + e.mood) / 2));
-      } else {
-        map.set(key, e.mood);
-      }
+      const existing = map.get(key) || [];
+      existing.push(e.mood);
+      map.set(key, existing);
     });
-    return map;
+    
+    const avgMap = new Map<string, number>();
+    map.forEach((moods, key) => {
+      const avg = Math.round(moods.reduce((a, b) => a + b, 0) / moods.length);
+      avgMap.set(key, avg);
+    });
+    return avgMap;
   }, [entries]);
 
   const weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];

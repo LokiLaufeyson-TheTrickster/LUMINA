@@ -142,6 +142,18 @@
   --glass-bg: rgba(255, 240, 243, 0.72);
 }
 
+[data-theme="coffee"] {
+  --cream-50: #FAF4E8;
+  --pink-300: #A67B5B;
+  --glass-bg: rgba(250, 244, 232, 0.72);
+}
+
+[data-theme="sunset"] {
+  --cream-50: #FFF0E6;
+  --pink-300: #FF8A66;
+  --glass-bg: rgba(255, 240, 230, 0.72);
+}
+
 /* ── Global Styles ──────────────────────────────────────── */
 
 * {

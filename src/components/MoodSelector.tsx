@@ -18,6 +18,7 @@ export default function MoodSelector({ value, onChange, size = 'md' }: MoodSelec
       gap: size === 'sm' ? 8 : 16,
       justifyContent: 'center',
       alignItems: 'center',
+      flexWrap: 'wrap',
     }}>
       {([1, 2, 3, 4, 5] as const).map(mood => {
         const config = MOOD_CONFIG[mood];

@@ -18,6 +18,8 @@ const THEME_OPTIONS = [
   { id: 'lavender', label: 'Lavender Mist', bg: '#F5F0FA', accent: '#A892D0', card: 'rgba(245,240,250,0.72)' },
   { id: 'sage', label: 'Forest Sage', bg: '#F0F5ED', accent: '#7BA88C', card: 'rgba(240,245,237,0.72)' },
   { id: 'rose', label: 'Rose Petal', bg: '#FFF0F3', accent: '#E88099', card: 'rgba(255,240,243,0.72)' },
+  { id: 'coffee', label: 'Coffee', bg: '#FAF4E8', accent: '#A67B5B', card: 'rgba(250,244,232,0.72)' },
+  { id: 'sunset', label: 'Sunset', bg: '#FFF0E6', accent: '#FF8A66', card: 'rgba(255,240,230,0.72)' },
   { id: 'midnight', label: 'Midnight', bg: '#0D0B14', accent: '#C4B5E0', card: 'rgba(20,16,32,0.85)' },
   { id: 'ocean', label: 'Deep Ocean', bg: '#0B1420', accent: '#6BAED6', card: 'rgba(11,20,32,0.85)' },
 ];

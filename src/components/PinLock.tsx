@@ -117,7 +117,7 @@ export default function PinLock({ onUnlock }: PinLockProps) {
         position: 'fixed',
         inset: 0,
         zIndex: 9998,
-        background: 'linear-gradient(180deg, #FFF9F5 0%, #EDE4F5 100%)',
+        background: 'var(--background)',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',

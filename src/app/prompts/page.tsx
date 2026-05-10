@@ -15,13 +15,19 @@ const CATEGORY_CONFIG: Record<string, { label: string; emoji: string; color: str
   'self-discovery': { label: 'Self Discovery', emoji: '🦋', color: 'var(--lavender-400)' },
   'creativity': { label: 'Creativity', emoji: '🎨', color: 'var(--gold-300)' },
   'shadow-work': { label: 'Shadow Work', emoji: '🌑', color: 'var(--neutral-500)' },
-  'goals': { label: 'Goals', emoji: '🎯', color: 'var(--sage-300)' },
+  'productivity': { label: 'Productivity', emoji: '🎯', color: 'var(--sage-300)' },
   'gratitude': { label: 'Gratitude', emoji: '🌸', color: 'var(--pink-400)' },
+  'late-night': { label: 'Late Night', emoji: '🌙', color: 'var(--indigo-300)' },
+  'future-self': { label: 'Future Self', emoji: '🕰️', color: 'var(--gold-300)' },
+  'intimacy': { label: 'Intimacy', emoji: '❤️‍🔥', color: 'var(--rose-400)' }
 };
+
+import { callLLM } from '@/lib/ai';
 
 export default function PromptsPage() {
   const router = useRouter();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [generatingAI, setGeneratingAI] = useState(false);
 
   const prompts = useLiveQuery(
     () => db.prompts.toArray(),
@@ -38,6 +44,33 @@ export default function PromptsPage() {
     router.push(`/new?prompt=${encodeURIComponent(random.text)}`);
   };
 
+  const handleAIGenerate = async () => {
+    if (generatingAI) return;
+    setGeneratingAI(true);
+    try {
+      const existingPromptsText = filtered.map(p => p.text).join('\\n');
+      const categoryName = selectedCategory ? CATEGORY_CONFIG[selectedCategory]?.label : 'Deep Introspection';
+      const messages: any[] = [
+        {
+          role: 'system',
+          content: `You are an expert prompt crafter. The user wants a deeply introspective journal prompt about '${categoryName}'.
+Do not repeat any of the following existing prompts:
+${existingPromptsText}
+Output ONLY the new prompt, nothing else. Make it thought-provoking and unique.`
+        }
+      ];
+      const newPrompt = await callLLM(messages);
+      if (newPrompt) {
+        router.push(`/new?prompt=${encodeURIComponent(newPrompt.replace(/["']/g, ''))}`);
+      }
+    } catch (e) {
+      console.error('AI generation failed', e);
+      alert('AI Generation failed. Please check your API key in Settings.');
+    } finally {
+      setGeneratingAI(false);
+    }
+  };
+
   return (
     <AppShell>
       <div className="page-enter">
@@ -51,28 +84,55 @@ export default function PromptsPage() {
           </p>
         </motion.div>
 
-        {/* Random prompt button */}
-        <motion.button
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="btn-primary"
-          onClick={getRandomPrompt}
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          style={{
-            width: '100%',
-            padding: '14px 24px',
-            marginBottom: 24,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 8,
-            fontSize: 15,
-          }}
-        >
-          <Shuffle size={18} />
-          Surprise Me — Random Prompt
-        </motion.button>
+        {/* Random / AI buttons */}
+        <div style={{ display: 'flex', gap: 12, marginBottom: 24 }}>
+          <motion.button
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="btn-primary"
+            onClick={getRandomPrompt}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            style={{
+              flex: 1,
+              padding: '14px 24px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 8,
+              fontSize: 14,
+            }}
+          >
+            <Shuffle size={18} />
+            Surprise Me
+          </motion.button>
+
+          <motion.button
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="btn-primary"
+            onClick={handleAIGenerate}
+            disabled={generatingAI}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            style={{
+              flex: 1,
+              padding: '14px 24px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 8,
+              fontSize: 14,
+              background: 'linear-gradient(135deg, var(--lavender-400), var(--pink-400))',
+              border: 'none',
+              color: 'white',
+              opacity: generatingAI ? 0.7 : 1
+            }}
+          >
+            <Sparkles size={18} />
+            {generatingAI ? 'Crafting...' : 'AI Generate'}
+          </motion.button>
+        </div>
 
         {/* Category Filter */}
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 24 }}>
