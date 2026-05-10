@@ -1,0 +1,26 @@
+{
+  "name": "LUMINA — Life Unfolding through Memory, Introspection & Narrative Analysis",
+  "short_name": "LUMINA",
+  "description": "An emotionally intelligent journaling system. Capture thoughts, track moods, score emotions, and nurture your inner garden.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FFF9F5",
+  "theme_color": "#F4A0B5",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["lifestyle", "health", "productivity"],
+  "prefer_related_applications": false
+}
