@@ -34,6 +34,7 @@ function NewEntryForm() {
   const [showVoice, setShowVoice] = useState(false);
   const [saving, setSaving] = useState(false);
   const [scoring, setScoring] = useState(false);
+  const [fullscreenImage, setFullscreenImage] = useState<string | null>(null);
   const [photos, setPhotos] = useState<File[]>([]);
   const [audioBlobs, setAudioBlobs] = useState<{ blob: Blob; duration: number }[]>([]);
   const [isVoiceEntry, setIsVoiceEntry] = useState(false);
@@ -347,6 +348,16 @@ function NewEntryForm() {
                 key={tag}
                 onClick={() => toggleTag(tag)}
                 className={`tag ${tags.includes(tag) ? 'tag-pink' : ''}`}
+                style={{ cursor: 'pointer', border: 'none', opacity: tags.includes(tag) ? 1 : 0.5, transition: 'opacity 0.2s' }}
+              >
+                {tag}
+              </button>
+            ))}
+            {tags.filter(t => !TAG_SUGGESTIONS.includes(t)).map(tag => (
+              <button
+                key={tag}
+                onClick={() => toggleTag(tag)}
+                className="tag tag-pink"
                 style={{ cursor: 'pointer', border: 'none' }}
               >
                 {tag}
@@ -435,45 +446,55 @@ function NewEntryForm() {
                 Tap to add photos
               </label>
               {photos.length > 0 && (
-                <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
-                  {photos.map((photo, i) => (
-                    <div key={i} style={{ position: 'relative' }}>
-                      <img
-                        src={URL.createObjectURL(photo)}
-                        alt={`Upload ${i + 1}`}
-                        style={{
-                          width: 80,
-                          height: 80,
-                          objectFit: 'cover',
-                          borderRadius: 'var(--radius-sm)',
-                        }}
-                      />
-                      <button
-                        onClick={() => setPhotos(prev => prev.filter((_, idx) => idx !== i))}
-                        style={{
-                          position: 'absolute',
-                          top: -6,
-                          right: -6,
-                          width: 20,
-                          height: 20,
-                          borderRadius: '50%',
-                          background: 'var(--pink-400)',
-                          color: 'white',
-                          border: 'none',
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                        }}
-                      >
-                        <X size={10} />
-                      </button>
-                    </div>
-                  ))}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginTop: 12 }}>
+                  {photos.map((p, i) => {
+                    const url = URL.createObjectURL(p);
+                    return (
+                      <div key={i} style={{ position: 'relative', aspectRatio: '1', borderRadius: 'var(--radius-md)', overflow: 'hidden' }}>
+                        <img
+                          src={url}
+                          alt="Upload"
+                          onClick={() => setFullscreenImage(url)}
+                          style={{ width: '100%', height: '100%', objectFit: 'cover', cursor: 'pointer' }}
+                        />
+                        <button
+                          className="btn-ghost"
+                          onClick={() => setPhotos(prev => prev.filter((_, idx) => idx !== i))}
+                          style={{ position: 'absolute', top: 4, right: 4, padding: 4, background: 'rgba(0,0,0,0.5)', color: 'white' }}
+                        >
+                          <X size={14} />
+                        </button>
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </div>
           </motion.div>
+        )}
+        <div style={{ height: 60 }} />
+
+        {/* Fullscreen Image Overlay */}
+        {fullscreenImage && (
+          <div
+            style={{
+              position: 'fixed',
+              inset: 0,
+              zIndex: 9999,
+              background: 'rgba(0,0,0,0.9)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'zoom-out'
+            }}
+            onClick={() => setFullscreenImage(null)}
+          >
+            <img
+              src={fullscreenImage}
+              style={{ maxWidth: '95%', maxHeight: '95%', objectFit: 'contain', borderRadius: 'var(--radius-sm)' }}
+              alt="Fullscreen view"
+            />
+          </div>
         )}
       </div>
     </AppShell>

@@ -13,7 +13,12 @@ const FONT_OPTIONS: Record<string, string> = {
 };
 
 export default function AppGuard({ children }: { children: React.ReactNode }) {
-  const [showSplash, setShowSplash] = useState(true);
+  const [showSplash, setShowSplash] = useState(() => {
+    if (typeof window !== 'undefined' && sessionStorage.getItem('lumina_splash_shown')) {
+      return false;
+    }
+    return true;
+  });
   const [showPinLock, setShowPinLock] = useState(false);
   const [ready, setReady] = useState(false);
 
@@ -30,7 +35,19 @@ export default function AppGuard({ children }: { children: React.ReactNode }) {
         document.documentElement.style.setProperty('--font-journal', FONT_OPTIONS[font]);
       }
     })();
-  }, []);
+
+    // Check PIN even if splash is skipped
+    if (!showSplash) {
+      (async () => {
+        const pinEnabled = await getSetting('pin_enabled');
+        if (pinEnabled === 'true') {
+          setShowPinLock(true);
+        } else {
+          setReady(true);
+        }
+      })();
+    }
+  }, [showSplash]);
 
   const triggerAutoBackup = async () => {
     const autoBackup = await getSetting('auto_backup');
@@ -58,6 +75,9 @@ export default function AppGuard({ children }: { children: React.ReactNode }) {
 
   const handleSplashDone = async () => {
     setShowSplash(false);
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('lumina_splash_shown', 'true');
+    }
     triggerAutoBackup();
     
     // Check if PIN is enabled

@@ -18,6 +18,7 @@ export default function EntryDetailPage({ params }: { params: Promise<{ id: stri
   const [photos, setPhotos] = useState<MediaItem[]>([]);
   const [deleting, setDeleting] = useState(false);
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
+  const [fullscreenImage, setFullscreenImage] = useState<string | null>(null);
 
   useEffect(() => {
     async function load() {
@@ -145,20 +146,25 @@ export default function EntryDetailPage({ params }: { params: Promise<{ id: stri
           <div style={{ marginBottom: 24 }}>
             <h3 style={{ fontSize: 14, fontWeight: 600, color: 'var(--neutral-600)', marginBottom: 12 }}>Photos</h3>
             <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-              {photos.map(photo => (
-                <img
-                  key={photo.id}
-                  src={URL.createObjectURL(photo.blob)}
-                  alt="Entry photo"
-                  style={{
-                    width: 200,
-                    height: 200,
-                    objectFit: 'cover',
-                    borderRadius: 'var(--radius-lg)',
-                    boxShadow: 'var(--glass-shadow)',
-                  }}
-                />
-              ))}
+              {photos.map(photo => {
+                const url = URL.createObjectURL(photo.blob);
+                return (
+                  <img
+                    key={photo.id}
+                    src={url}
+                    alt="Entry photo"
+                    onClick={() => setFullscreenImage(url)}
+                    style={{
+                      width: 200,
+                      height: 200,
+                      objectFit: 'cover',
+                      borderRadius: 'var(--radius-lg)',
+                      boxShadow: 'var(--glass-shadow)',
+                      cursor: 'zoom-in',
+                    }}
+                  />
+                );
+              })}
             </div>
           </div>
         )}
@@ -230,6 +236,30 @@ export default function EntryDetailPage({ params }: { params: Promise<{ id: stri
                 </button>
               </div>
             </motion.div>
+          </div>
+        )}
+        <div style={{ height: 60 }} />
+
+        {/* Fullscreen Image Overlay */}
+        {fullscreenImage && (
+          <div 
+            style={{
+              position: 'fixed',
+              inset: 0,
+              zIndex: 9999,
+              background: 'rgba(0,0,0,0.9)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'zoom-out'
+            }}
+            onClick={() => setFullscreenImage(null)}
+          >
+            <img 
+              src={fullscreenImage} 
+              style={{ maxWidth: '95%', maxHeight: '95%', objectFit: 'contain', borderRadius: 'var(--radius-sm)' }} 
+              alt="Fullscreen view" 
+            />
           </div>
         )}
       </div>

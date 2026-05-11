@@ -31,7 +31,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           {children}
         </div>
       </main>
-      {!isDreamSpace && <QuickCapture />}
+      {!isDreamSpace && !['/new', '/settings', '/customize', '/chat'].includes(pathname) && !pathname.startsWith('/entry/') && <QuickCapture />}
       <AmbientAudio />
     </>
   );

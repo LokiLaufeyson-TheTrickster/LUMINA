@@ -15,6 +15,7 @@ export default function ChatPage() {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showConfirmClear, setShowConfirmClear] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -90,10 +91,25 @@ export default function ChatPage() {
     inputRef.current?.focus();
   };
 
-  const clearChat = async () => {
-    if (confirm('Clear all chat history?')) {
-      await db.chatMessages.clear();
-    }
+  const handleClearClick = () => setShowConfirmClear(true);
+
+  const confirmClearChat = async () => {
+    await db.chatMessages.clear();
+    setShowConfirmClear(false);
+  };
+
+  const renderMarkdown = (text: string) => {
+    return text.split('\n').map((line, i) => {
+      let formatted = line
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+        .replace(/`(.*?)`/g, '<code style="background:rgba(0,0,0,0.05);padding:2px 4px;border-radius:4px;font-family:monospace">$1</code>');
+      
+      if (formatted.startsWith('- ')) {
+        return <li key={i} dangerouslySetInnerHTML={{ __html: formatted.substring(2) }} style={{ marginLeft: 20, marginBottom: 4 }} />;
+      }
+      return <p key={i} dangerouslySetInnerHTML={{ __html: formatted }} style={{ margin: '4px 0', minHeight: formatted.trim() ? 'auto' : 16 }} />;
+    });
   };
 
   const suggestedQuestions = [
@@ -119,7 +135,7 @@ export default function ChatPage() {
               </p>
             </div>
             {messages && messages.length > 0 && (
-              <button className="btn-ghost" onClick={clearChat} style={{ color: 'var(--neutral-400)' }}>
+              <button className="btn-ghost" onClick={handleClearClick} style={{ color: 'var(--neutral-400)' }}>
                 <Trash2 size={16} />
               </button>
             )}
@@ -217,7 +233,9 @@ export default function ChatPage() {
                         <Sparkles size={10} /> LUMINA
                       </div>
                     )}
-                    <div style={{ whiteSpace: 'pre-wrap' }}>{msg.content}</div>
+                    <div style={{ wordBreak: 'break-word' }}>
+                      {msg.role === 'assistant' ? renderMarkdown(msg.content) : msg.content}
+                    </div>
                   </div>
                 </motion.div>
               ))}
@@ -251,6 +269,56 @@ export default function ChatPage() {
             </div>
           )}
         </div>
+
+        {/* Custom Delete Confirm Modal */}
+        {showConfirmClear && (
+          <div style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 9999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'rgba(0,0,0,0.4)',
+            backdropFilter: 'blur(4px)',
+            padding: 24,
+          }}>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              style={{
+                background: 'var(--background)',
+                borderRadius: 'var(--radius-lg)',
+                padding: 24,
+                width: '100%',
+                maxWidth: 400,
+                boxShadow: 'var(--glass-shadow)',
+              }}
+            >
+              <h3 style={{ fontSize: 18, fontWeight: 600, color: 'var(--neutral-700)', marginBottom: 12 }}>
+                Clear chat history?
+              </h3>
+              <p style={{ fontSize: 14, color: 'var(--neutral-500)', marginBottom: 24, lineHeight: 1.5 }}>
+                Are you sure you want to delete all messages? This cannot be undone.
+              </p>
+              <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end' }}>
+                <button
+                  className="btn-ghost"
+                  onClick={() => setShowConfirmClear(false)}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="btn-primary"
+                  onClick={confirmClearChat}
+                  style={{ background: 'var(--pink-500)', color: 'white', border: 'none' }}
+                >
+                  Clear
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
 
         {/* Input */}
         <div style={{
