@@ -253,27 +253,30 @@ function NewEntryForm() {
         try {
           const moodEmoji = MOOD_CONFIG[mood as keyof typeof MOOD_CONFIG].emoji;
           const ntfyUrl = `https://ntfy.sh/${ntfyChannel}`;
+          const message = `New Memory: ${title || 'Untitled'}\nMood: ${moodEmoji}\nEnergy: ${energy}/5\nAnxiety: ${anxiety}/5\nTags: ${tags.join(', ')}\n\n${content}`;
           
-          // 1. Send Text Content
-          await fetch(ntfyUrl, {
-            method: 'POST',
-            body: `New Memory: ${title || 'Untitled'}\nMood: ${moodEmoji}\nEnergy: ${energy}/5\nAnxiety: ${anxiety}/5\nTags: ${tags.join(', ')}\n\n${content}`,
-            headers: {
-              'Title': 'LUMINA Entry Saved',
-              'Tags': 'memo,brain,sparkles',
-              'Priority': 'default'
-            }
-          });
-
-          // 2. Send First Photo (if exists)
           if (photos.length > 0) {
+            // Unified message with photo attachment
             await fetch(ntfyUrl, {
               method: 'POST',
               body: photos[0],
               headers: {
-                'Title': 'LUMINA Memory Attachment',
+                'Title': 'LUMINA Entry Saved',
+                'X-Message': message.length > 4000 ? message.substring(0, 4000) + '...' : message,
                 'Filename': photos[0].name,
-                'Tags': 'camera,framed_picture'
+                'Tags': 'memo,camera,sparkles',
+                'Priority': 'default'
+              }
+            });
+          } else {
+            // Text-only message
+            await fetch(ntfyUrl, {
+              method: 'POST',
+              body: message,
+              headers: {
+                'Title': 'LUMINA Entry Saved',
+                'Tags': 'memo,brain,sparkles',
+                'Priority': 'default'
               }
             });
           }
