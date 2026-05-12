@@ -17,7 +17,6 @@ export interface JournalEntry {
   customEmotions: string[];
   tags: string[];
   location?: string;
-  location?: string;
   isLocked?: boolean;
   isVoiceEntry?: boolean;
   // ── Emotion Scoring ──
