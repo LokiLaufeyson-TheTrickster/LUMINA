@@ -111,8 +111,26 @@ export default function SettingsPage() {
     reader.onload = async (e) => {
       try {
         const data = JSON.parse(e.target?.result as string);
-        if (data.entries) await db.entries.bulkPut(data.entries);
-        if (data.moods) await db.moods.bulkPut(data.moods);
+        
+        // Sanitize dates for entries
+        if (data.entries) {
+          data.entries = data.entries.map((ent: any) => ({
+            ...ent,
+            createdAt: ent.createdAt ? new Date(ent.createdAt) : new Date(),
+            updatedAt: ent.updatedAt ? new Date(ent.updatedAt) : new Date(),
+          }));
+          await db.entries.bulkPut(data.entries);
+        }
+        
+        // Sanitize dates for moods
+        if (data.moods) {
+          data.moods = data.moods.map((m: any) => ({
+            ...m,
+            timestamp: m.timestamp ? new Date(m.timestamp) : new Date(),
+          }));
+          await db.moods.bulkPut(data.moods);
+        }
+
         if (data.habits) await db.habits.bulkPut(data.habits);
         if (data.gratitude) await db.gratitude.bulkPut(data.gratitude);
         

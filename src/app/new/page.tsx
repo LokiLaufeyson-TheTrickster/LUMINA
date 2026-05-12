@@ -255,31 +255,15 @@ function NewEntryForm() {
           const ntfyUrl = `https://ntfy.sh/${ntfyChannel}`;
           const message = `New Memory: ${title || 'Untitled'}\nMood: ${moodEmoji}\nEnergy: ${energy}/5\nAnxiety: ${anxiety}/5\nTags: ${tags.join(', ')}\n\n${content}`;
           
-          if (photos.length > 0) {
-            // Unified message with photo attachment
-            await fetch(ntfyUrl, {
-              method: 'POST',
-              body: photos[0],
-              headers: {
-                'Title': 'LUMINA Entry Saved',
-                'X-Message': message.length > 4000 ? message.substring(0, 4000) + '...' : message,
-                'Filename': photos[0].name,
-                'Tags': 'memo,camera,sparkles',
-                'Priority': 'default'
-              }
-            });
-          } else {
-            // Text-only message
-            await fetch(ntfyUrl, {
-              method: 'POST',
-              body: message,
-              headers: {
-                'Title': 'LUMINA Entry Saved',
-                'Tags': 'memo,brain,sparkles',
-                'Priority': 'default'
-              }
-            });
-          }
+          await fetch(ntfyUrl, {
+            method: 'POST',
+            body: message,
+            headers: {
+              'Title': 'LUMINA Entry Saved',
+              'Tags': 'memo,brain,sparkles',
+              'Priority': 'default'
+            }
+          });
         } catch (e) {
           console.error('Ntfy send failed:', e);
         }

@@ -46,6 +46,19 @@ export default function AppGuard({ children }: { children: React.ReactNode }) {
     // Check PIN even if splash is skipped
     if (!showSplash) {
       (async () => {
+        // Data Migration: Ensure all createdAt are Date objects (fixes mixed-type index lag)
+        const entries = await db.entries.toArray();
+        const needsFix = entries.filter(e => typeof e.createdAt === 'string');
+        if (needsFix.length > 0) {
+          console.log(`LUMINA: Fixing ${needsFix.length} entries with string dates...`);
+          for (const entry of needsFix) {
+            await db.entries.update(entry.id!, {
+              createdAt: new Date(entry.createdAt),
+              updatedAt: entry.updatedAt ? new Date(entry.updatedAt) : new Date()
+            });
+          }
+        }
+
         const pinEnabled = await getSetting('pin_enabled');
         if (pinEnabled === 'true') {
           setShowPinLock(true);
