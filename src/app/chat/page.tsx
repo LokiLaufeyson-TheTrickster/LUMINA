@@ -9,6 +9,7 @@ import { callLLM, buildChatPrompt, getAIConfig } from '@/lib/ai';
 import AppShell from '@/components/AppShell';
 import { MessageCircle, Send, Sparkles, AlertCircle, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import ReactMarkdown from 'react-markdown';
 
 export default function ChatPage() {
   const router = useRouter();
@@ -96,20 +97,6 @@ export default function ChatPage() {
   const confirmClearChat = async () => {
     await db.chatMessages.clear();
     setShowConfirmClear(false);
-  };
-
-  const renderMarkdown = (text: string) => {
-    return text.split('\n').map((line, i) => {
-      let formatted = line
-        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-        .replace(/\*(.*?)\*/g, '<em>$1</em>')
-        .replace(/`(.*?)`/g, '<code style="background:rgba(0,0,0,0.05);padding:2px 4px;border-radius:4px;font-family:monospace">$1</code>');
-      
-      if (formatted.startsWith('- ')) {
-        return <li key={i} dangerouslySetInnerHTML={{ __html: formatted.substring(2) }} style={{ marginLeft: 20, marginBottom: 4 }} />;
-      }
-      return <p key={i} dangerouslySetInnerHTML={{ __html: formatted }} style={{ margin: '4px 0', minHeight: formatted.trim() ? 'auto' : 16 }} />;
-    });
   };
 
   const suggestedQuestions = [
@@ -234,7 +221,18 @@ export default function ChatPage() {
                       </div>
                     )}
                     <div style={{ wordBreak: 'break-word' }}>
-                      {msg.role === 'assistant' ? renderMarkdown(msg.content) : msg.content}
+                      {msg.role === 'assistant' ? (
+                        <ReactMarkdown 
+                          components={{
+                            p: ({node, ...props}) => <p style={{ margin: '8px 0' }} {...props} />,
+                            li: ({node, ...props}) => <li style={{ marginLeft: 16, marginBottom: 4 }} {...props} />,
+                            ul: ({node, ...props}) => <ul style={{ margin: '8px 0' }} {...props} />,
+                            code: ({node, ...props}) => <code style={{ background: 'rgba(0,0,0,0.05)', padding: '2px 4px', borderRadius: 4, fontFamily: 'monospace' }} {...props} />
+                          }}
+                        >
+                          {msg.content}
+                        </ReactMarkdown>
+                      ) : msg.content}
                     </div>
                   </div>
                 </motion.div>
