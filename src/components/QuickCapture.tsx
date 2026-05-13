@@ -23,8 +23,6 @@ export default function QuickCapture() {
 
   const actions = [
     { icon: PenLine, label: 'New Entry', action: () => { router.push('/new'); setIsOpen(false); }, color: 'var(--pink-300)' },
-    { icon: Mic, label: 'Voice Note', action: () => { router.push('/new?mode=voice'); setIsOpen(false); }, color: 'var(--lavender-400)' },
-    { icon: Camera, label: 'Photo', action: () => { router.push('/new?mode=photo'); setIsOpen(false); }, color: 'var(--gold-300)' },
     { icon: Heart, label: 'Gratitude', action: () => { router.push('/gratitude'); setIsOpen(false); }, color: 'var(--pink-400)' },
     { icon: Sparkles, label: 'Prompts', action: () => { router.push('/prompts'); setIsOpen(false); }, color: 'var(--lavender-300)' },
     { icon: MessageCircle, label: 'AI Chat', action: () => { router.push('/chat'); setIsOpen(false); }, color: 'var(--sage-300)' },

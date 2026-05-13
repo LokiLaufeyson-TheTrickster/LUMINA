@@ -161,18 +161,6 @@ function NewEntryForm() {
   const contentRef = useRef<HTMLTextAreaElement>(null);
   const photoInputRef = useRef<HTMLInputElement>(null);
 
-  const mode = searchParams.get('mode');
-
-  useEffect(() => {
-    if (mode === 'voice') {
-      setShowVoice(true);
-      setIsVoiceEntry(true);
-    } else if (mode === 'photo') {
-      setShowAdvanced(true);
-      setTimeout(() => photoInputRef.current?.click(), 300);
-    }
-  }, [mode]);
-
   useEffect(() => {
     async function loadTags() {
       const allEntries = await db.entries.toArray();
