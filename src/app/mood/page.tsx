@@ -8,7 +8,7 @@ import AppShell from '@/components/AppShell';
 import MoodHeatmap from '@/components/MoodHeatmap';
 import { MOOD_CONFIG } from '@/lib/utils';
 import { BarChart3, TrendingUp, TrendingDown, Minus, ChevronLeft, ChevronRight } from 'lucide-react';
-import { format, subMonths, addMonths, subDays, startOfDay } from 'date-fns';
+import { format, subMonths, addMonths, subDays, startOfDay, isSameDay } from 'date-fns';
 
 export default function MoodPage() {
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -69,18 +69,19 @@ export default function MoodPage() {
   // Weekly bar chart data
   const weekDays = useMemo(() => {
     const days = [];
+    const now = new Date();
+    
     for (let i = 6; i >= 0; i--) {
-      const day = subDays(new Date(), i);
-      const dayStr = format(day, 'yyyy-MM-dd');
-      const dayEntries = (entries || []).filter(
-        e => format(new Date(e.createdAt), 'yyyy-MM-dd') === dayStr
-      );
+      const day = subDays(now, i);
+      const dayEntries = (entries || []).filter(e => isSameDay(new Date(e.createdAt), day));
+      
       const avgMood = dayEntries.length > 0
         ? dayEntries.reduce((s, e) => s + e.mood, 0) / dayEntries.length
         : 0;
+      
       days.push({
         label: format(day, 'EEE'),
-        date: dayStr,
+        date: format(day, 'yyyy-MM-dd'),
         mood: avgMood,
         count: dayEntries.length,
       });

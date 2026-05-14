@@ -28,6 +28,7 @@ export default function AppGuard({ children }: { children: React.ReactNode }) {
   });
   const [showPinLock, setShowPinLock] = useState(false);
   const [ready, setReady] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   useEffect(() => {
     seedPrompts();
@@ -129,14 +130,15 @@ export default function AppGuard({ children }: { children: React.ReactNode }) {
   return (
     <>
       <AmbientBackground />
-      <Sidebar />
+      <Sidebar collapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} />
       <main style={{
-        paddingBottom: 80,
+        paddingBottom: 'calc(80px + env(safe-area-inset-bottom))',
         minHeight: '100vh',
         position: 'relative',
         zIndex: 1,
+        transition: 'margin-left 0.3s ease',
       }}
-        className="md:ml-[240px]"
+        className={sidebarCollapsed ? "md:ml-[80px]" : "md:ml-[240px] md:pb-0"}
       >
         <div style={{
           maxWidth: 900,

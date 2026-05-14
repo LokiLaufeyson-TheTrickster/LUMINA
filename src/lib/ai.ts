@@ -39,6 +39,18 @@ export async function callLLM(
   messages: AIMessage[],
   config?: AIConfig | null
 ): Promise<string> {
+  let fullContent = '';
+  await callLLMStream(messages, (chunk) => {
+    fullContent += chunk;
+  }, config);
+  return fullContent;
+}
+
+export async function callLLMStream(
+  messages: AIMessage[],
+  onChunk: (chunk: string) => void,
+  config?: AIConfig | null
+): Promise<void> {
   const aiConfig = config || getAIConfig();
   if (!aiConfig?.apiKey) {
     throw new Error('No API key configured');
@@ -61,14 +73,47 @@ export async function callLLM(
           messages,
           temperature: 0.7,
           max_tokens: 1024,
+          stream: true,
         }),
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        return data.choices[0]?.message?.content || 'No response generated.';
+      if (!response.ok) {
+        throw new Error(`API returned ${response.status}`);
       }
-    } catch {
+
+      const reader = response.body?.getReader();
+      if (!reader) throw new Error('No reader available');
+
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed || trimmed === 'data: [DONE]') continue;
+          if (trimmed.startsWith('data: ')) {
+            try {
+              const json = JSON.parse(trimmed.slice(6));
+              const content = json.choices[0]?.delta?.content || '';
+              if (content) onChunk(content);
+            } catch (e) {
+              // Ignore partial JSON
+            }
+          }
+        }
+      }
+      
+      // If we got here and actually received chunks, we are done
+      return; 
+    } catch (err) {
+      console.warn(`LUMINA: Model ${model} failed, trying next...`, err);
       continue;
     }
   }

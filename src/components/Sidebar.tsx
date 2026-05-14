@@ -31,48 +31,66 @@ const MOBILE_NAV = [
   { href: '/settings', label: 'More', icon: Menu },
 ];
 
-export default function Sidebar() {
-  const [isOpen, setIsOpen] = useState(false);
+export default function Sidebar({ collapsed, onToggle }: { collapsed?: boolean; onToggle?: () => void }) {
+  const [isMoreOpen, setIsMoreOpen] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
 
   return (
     <>
       {/* Desktop Sidebar */}
-      <aside className="sidebar hidden md:flex flex-col w-[240px] h-screen fixed left-0 top-0 z-10">
+      <aside 
+        className={`sidebar hidden md:flex flex-col h-screen fixed left-0 top-0 z-10 transition-all duration-300 ${collapsed ? 'w-[80px]' : 'w-[240px]'}`}
+      >
+        {/* Toggle Button */}
+        <button 
+          onClick={onToggle}
+          className="btn-ghost"
+          style={{ position: 'absolute', right: -12, top: 24, width: 24, height: 24, borderRadius: '50%', background: 'var(--cream-50)', border: '1px solid var(--glass-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 20, padding: 0 }}
+        >
+          {collapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
+        </button>
+
         {/* Logo */}
-        <div style={{ padding: '24px 20px 16px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div style={{ padding: collapsed ? '24px 0' : '24px 20px 16px', textAlign: 'center', overflow: 'hidden' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', justifyContent: collapsed ? 'center' : 'flex-start' }}>
             <div style={{
               width: 36, height: 36, borderRadius: '50%',
               background: 'linear-gradient(135deg, var(--pink-300), var(--lavender-400))',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
+              flexShrink: 0
             }}>
               <Sparkles size={18} color="white" />
             </div>
-            <span className="text-gradient" style={{ fontSize: 22, fontWeight: 700, letterSpacing: '2px', fontFamily: 'var(--font-body)' }}>
-              LUMINA
-            </span>
+            {!collapsed && (
+              <span className="text-gradient" style={{ fontSize: 22, fontWeight: 700, letterSpacing: '2px', fontFamily: 'var(--font-body)', whiteSpace: 'nowrap' }}>
+                LUMINA
+              </span>
+            )}
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 6 }}>
-            <p style={{ fontSize: 11, color: 'var(--neutral-400)', paddingLeft: 46, fontStyle: 'italic' }}>
-              your emotional OS
-            </p>
-            <NotificationBell />
-          </div>
+          {!collapsed && (
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 6 }}>
+              <p style={{ fontSize: 11, color: 'var(--neutral-400)', paddingLeft: 46, fontStyle: 'italic' }}>
+                your emotional OS
+              </p>
+              <NotificationBell />
+            </div>
+          )}
         </div>
 
         {/* Search */}
-        <div style={{ padding: '0 16px 12px' }}>
-          <button
-            onClick={() => router.push('/search')}
-            className="btn-ghost"
-            style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'flex-start', color: 'var(--neutral-400)', fontSize: 13, border: '1px solid var(--neutral-200)', borderRadius: 'var(--radius-md)' }}
-          >
-            <Search size={14} />
-            Search memories...
-          </button>
-        </div>
+        {!collapsed && (
+          <div style={{ padding: '0 16px 12px' }}>
+            <button
+              onClick={() => router.push('/search')}
+              className="btn-ghost"
+              style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'flex-start', color: 'var(--neutral-400)', fontSize: 13, border: '1px solid var(--neutral-200)', borderRadius: 'var(--radius-md)' }}
+            >
+              <Search size={14} />
+              Search memories...
+            </button>
+          </div>
+        )}
 
         {/* Nav Items */}
         <nav style={{ flex: 1, padding: '0 12px', overflowY: 'auto' }}>
@@ -84,19 +102,30 @@ export default function Sidebar() {
                 key={item.href}
                 onClick={() => router.push(item.href)}
                 className={`sidebar-link ${isActive ? 'active' : ''}`}
-                style={{ width: '100%', border: 'none', background: isActive ? undefined : 'none', cursor: 'pointer', marginBottom: 2 }}
+                style={{ 
+                  width: '100%', 
+                  border: 'none', 
+                  background: isActive ? undefined : 'none', 
+                  cursor: 'pointer', 
+                  marginBottom: 2,
+                  justifyContent: collapsed ? 'center' : 'flex-start',
+                  padding: collapsed ? '10px 0' : '10px 16px'
+                }}
+                title={collapsed ? item.label : undefined}
               >
-                <Icon size={18} />
-                {item.label}
+                <Icon size={18} style={{ flexShrink: 0 }} />
+                {!collapsed && item.label}
               </button>
             );
           })}
         </nav>
 
         {/* Footer */}
-        <div style={{ padding: '16px 20px', borderTop: '1px solid var(--glass-border)', fontSize: 11, color: 'var(--neutral-400)', textAlign: 'center' }}>
-          ✨ Your thoughts are safe here
-        </div>
+        {!collapsed && (
+          <div style={{ padding: '16px 20px', borderTop: '1px solid var(--glass-border)', fontSize: 11, color: 'var(--neutral-400)', textAlign: 'center' }}>
+            ✨ Your thoughts are safe here
+          </div>
+        )}
       </aside>
 
       {/* Mobile Bottom Navigation */}
@@ -109,7 +138,7 @@ export default function Sidebar() {
               key={item.href}
               onClick={() => {
                 if (item.href === '/settings' && item.label === 'More') {
-                  setIsOpen(true);
+                  setIsMoreOpen(true);
                 } else {
                   router.push(item.href);
                 }
@@ -125,13 +154,13 @@ export default function Sidebar() {
 
       {/* Mobile Menu Overlay */}
       <AnimatePresence>
-        {isOpen && (
+        {isMoreOpen && (
           <motion.div
             className="modal-overlay md:hidden"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={() => setIsOpen(false)}
+            onClick={() => setIsMoreOpen(false)}
           >
             <motion.div
               className="modal-content"
@@ -143,7 +172,7 @@ export default function Sidebar() {
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
                 <span className="text-gradient" style={{ fontSize: 20, fontWeight: 700, letterSpacing: 2 }}>LUMINA</span>
-                <button onClick={() => setIsOpen(false)} className="btn-ghost" style={{ padding: 8 }}>
+                <button onClick={() => setIsMoreOpen(false)} className="btn-ghost" style={{ padding: 8 }}>
                   <X size={20} />
                 </button>
               </div>

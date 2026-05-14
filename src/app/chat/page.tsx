@@ -5,7 +5,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { motion, AnimatePresence } from 'framer-motion';
 import { db } from '@/lib/db';
 import type { ChatMessage } from '@/lib/db';
-import { callLLM, buildChatPrompt, getAIConfig } from '@/lib/ai';
+import { callLLM, callLLMStream, buildChatPrompt, getAIConfig } from '@/lib/ai';
 import AppShell from '@/components/AppShell';
 import { MessageCircle, Send, Sparkles, AlertCircle, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -17,6 +17,7 @@ export default function ChatPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showConfirmClear, setShowConfirmClear] = useState(false);
+  const [streamingMessage, setStreamingMessage] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -34,13 +35,14 @@ export default function ChatPage() {
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  }, [messages, streamingMessage]);
 
   const handleSend = async () => {
     if (!input.trim() || loading) return;
     const question = input.trim();
     setInput('');
     setError(null);
+    setStreamingMessage('');
 
     // Save user message
     await db.chatMessages.add({
@@ -69,11 +71,16 @@ export default function ChatPage() {
       const contextEntries = relevant.length > 0 ? relevant : allEntries.slice(0, 10);
 
       const prompt = buildChatPrompt(question, contextEntries);
-      const response = await callLLM(prompt);
+      
+      let fullResponse = '';
+      await callLLMStream(prompt, (chunk) => {
+        fullResponse += chunk;
+        setStreamingMessage(fullResponse);
+      });
 
       await db.chatMessages.add({
         role: 'assistant',
-        content: response,
+        content: fullResponse,
         createdAt: new Date(),
       });
     } catch (err: unknown) {
@@ -89,6 +96,7 @@ export default function ChatPage() {
     }
 
     setLoading(false);
+    setStreamingMessage('');
     inputRef.current?.focus();
   };
 
@@ -237,7 +245,42 @@ export default function ChatPage() {
                   </div>
                 </motion.div>
               ))}
-              {loading && (
+              {streamingMessage && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  style={{ display: 'flex', justifyContent: 'flex-start' }}
+                >
+                  <div style={{
+                    maxWidth: '80%',
+                    padding: '12px 16px',
+                    borderRadius: '16px 16px 16px 4px',
+                    background: 'var(--glass-bg)',
+                    color: 'var(--neutral-700)',
+                    border: '1px solid var(--glass-border)',
+                    fontSize: 14,
+                    lineHeight: 1.6,
+                    fontFamily: 'var(--font-journal)',
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 6, fontSize: 10, color: 'var(--lavender-400)', fontWeight: 600, fontFamily: 'var(--font-body)' }}>
+                      <Sparkles size={10} /> LUMINA
+                    </div>
+                    <div style={{ wordBreak: 'break-word' }}>
+                      <ReactMarkdown 
+                        components={{
+                          p: ({node, ...props}) => <p style={{ margin: '8px 0' }} {...props} />,
+                          li: ({node, ...props}) => <li style={{ marginLeft: 16, marginBottom: 4 }} {...props} />,
+                          ul: ({node, ...props}) => <ul style={{ margin: '8px 0' }} {...props} />,
+                          code: ({node, ...props}) => <code style={{ background: 'rgba(0,0,0,0.05)', padding: '2px 4px', borderRadius: 4, fontFamily: 'monospace' }} {...props} />
+                        }}
+                      >
+                        {streamingMessage}
+                      </ReactMarkdown>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+              {loading && !streamingMessage && (
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ display: 'flex' }}>
                   <div style={{
                     padding: '12px 16px',
